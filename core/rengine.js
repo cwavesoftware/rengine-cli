@@ -34,11 +34,10 @@ login = function(){
     return new Promise((resolve, reject) => {
         client.get('/login/')
         .then(({ config }) => {
-            client.post(
-                `${rengineUrl}/login/`,
+            client.post('/login/',
                 {
-                    username: cnf.get('rengine.username'),
-                    password: cnf.get('rengine.password'),
+                    username: cnf.rengine.username,
+                    password: cnf.rengine.password,
                     csrfmiddlewaretoken: config.jar.getCookiesSync(config.baseURL) ? config.jar.getCookiesSync(config.baseURL)[0].value : ''
                 }
             ).then(function (response) {
@@ -60,19 +59,29 @@ login = function(){
     });
 }
 
-getTargets = function(){
+post = function(url, keyword) {
     return new Promise((resolve, reject) => {
-        client.get('/api/queryTargets/')
+        client.get(url)
         .then(function (response) {
-            console.log(response.data.domains != null ? JSON.stringify(response.data.domains) : chalk.red('error'));
+            console.log(response.data[keyword] != null ? JSON.stringify(response.data[keyword]) : chalk.red('error'));
         }).catch(async function (error) {
             if (error.response.status == 302 && error.response.headers.location.startsWith('/login/?')) {  
                 // need to login
                 await login();
-                getTargets();
+                post(url, keyword);
             }
         });
     });
 }
 
-module.exports = { login, getTargets }
+getTargets = function(){
+    return post('/api/queryTargets/', 'domains');
+}
+
+getSubdomains = function(){
+    return post('/api/querySubdomains/', 'subdomains');
+}
+
+
+
+module.exports = { login, getTargets, getSubdomains }
