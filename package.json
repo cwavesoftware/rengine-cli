@@ -1,0 +1,25 @@
+{
+  "name": "rengine-cli",
+  "version": "1.0.0",
+  "description": "cli tool for reNgine (https://github.com/cwavesoftware/rengine)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cwavesoftware/rengine-cli.git"
+  },
+  "keywords": [
+    "cli",
+    "rengine",
+    "recon",
+    "pentest"
+  ],
+  "author": "Cosmin Craciun (cWave)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/cwavesoftware/rengine-cli/issues"
+  },
+  "homepage": "https://github.com/cwavesoftware/rengine-cli#readme"
+}
