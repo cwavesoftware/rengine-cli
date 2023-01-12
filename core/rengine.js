@@ -1,4 +1,6 @@
-const cnf = require('config');
+const os = require('os');
+const path = require('path');
+const cnf = require(path.join(`${os.homedir}`, '.config', 'rengine-cli.json'));
 const chalk = require('chalk');
 const axios = require('axios');
 const { CookieJar } = require('tough-cookie');
@@ -20,15 +22,13 @@ loadSessId();
 
 const client = wrapper(axios.create({ 
     jar,
-    baseURL: cnf.get('rengine.url'),
+    baseURL: cnf.rengine.url,
     headers: {
         'Content-type': 'application/x-www-form-urlencoded',
         'Cookie': `sessionid=${sessId}`
     },
     maxRedirects: 0
 }));
-
-const rengineUrl = cnf.get('rengine.url');
 
 login = function(){
     return new Promise((resolve, reject) => {
@@ -64,7 +64,7 @@ getTargets = function(){
     return new Promise((resolve, reject) => {
         client.get('/api/queryTargets/')
         .then(function (response) {
-            console.log(response.data.domains != null ? response.data.domains : chalk.red('error'));
+            console.log(response.data.domains != null ? JSON.stringify(response.data.domains) : chalk.red('error'));
         }).catch(async function (error) {
             if (error.response.status == 302 && error.response.headers.location.startsWith('/login/?')) {  
                 // need to login

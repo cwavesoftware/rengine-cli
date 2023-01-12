@@ -1,4 +1,3 @@
-const config = require('config');
 const rengine = require('../../core/rengine');
 
 listTargets  = async function() {
