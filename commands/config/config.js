@@ -1,9 +1,7 @@
-const os = require('os');
-const path = require('path');
 const prompt = require('prompt-sync')({sigint: true});
 const chalk = require('chalk');
 const fs = require('fs');
-
+const { CONFIG_FILE } = require('../../const');
 
 getConf = async function() {
     return new Promise((resolv, reject) => {
@@ -22,10 +20,9 @@ writeConf  = async function() {
             rengine: configParams
         };
         conf = JSON.stringify(conf);
-        const cnfFilePath = path.join(`${os.homedir}`, '.config', 'rengine-cli.json');
 
         try{
-            fs.writeFileSync(cnfFilePath, conf);
+            fs.writeFileSync(CONFIG_FILE, conf);
             console.log(chalk.blue('config saved'));
         } catch (err) {
             console.log(chalk.red(err));

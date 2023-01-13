@@ -1,14 +1,21 @@
-const os = require('os');
-const path = require('path');
-const cnf = require(path.join(`${os.homedir}`, '.config', 'rengine-cli.json'));
+const { CONFIG_FILE } = require('../const');
 const chalk = require('chalk');
 const axios = require('axios');
 const { CookieJar } = require('tough-cookie');
 const { wrapper } = require('axios-cookiejar-support');
 const fs = require('fs');
+var cnf = null;
+try {
+    cnf = require(CONFIG_FILE);
+} catch(err) {
+    if (process.argv.length >= 3 && process.argv[2] != 'config')
+        console.log(chalk.yellow('No config found. Run \'rengine-cli config\' first.'));
+}
+
 
 const jar = new CookieJar();
 sessId = null;
+var client = null;
 
 loadSessId = function () {
     try {
@@ -20,15 +27,17 @@ loadSessId = function () {
 }
 loadSessId();
 
-const client = wrapper(axios.create({ 
-    jar,
-    baseURL: cnf.rengine.url,
-    headers: {
-        'Content-type': 'application/x-www-form-urlencoded',
-        'Cookie': `sessionid=${sessId}`
-    },
-    maxRedirects: 0
-}));
+if (cnf) {
+    client = wrapper(axios.create({
+        jar,
+        baseURL: cnf.rengine.url,
+        headers: {
+            'Content-type': 'application/x-www-form-urlencoded',
+            'Cookie': `sessionid=${sessId}`
+        },
+        maxRedirects: 0
+    }));
+}
 
 login = function(){
     return new Promise((resolve, reject) => {
@@ -63,13 +72,17 @@ post = function(url, keyword) {
     return new Promise((resolve, reject) => {
         client.get(url)
         .then(function (response) {
-            console.log(response.data[keyword] != null ? JSON.stringify(response.data[keyword]) : chalk.red('error'));
+            if (keyword)
+                console.log(response.data[keyword] != null ? JSON.stringify(response.data[keyword]) : chalk.red('error'));
+            else
+                console.log(JSON.stringify(response.data));
         }).catch(async function (error) {
-            if (error.response.status == 302 && error.response.headers.location.startsWith('/login/?')) {  
+            if (error.response && error.response.status == 302 && error.response.headers.location.startsWith('/login/?')) {  
                 // need to login
                 await login();
                 post(url, keyword);
-            }
+            } else 
+                console.log(chalk.red(error.code));
         });
     });
 }
@@ -78,10 +91,25 @@ getTargets = function(){
     return post('/api/queryTargets/', 'domains');
 }
 
-getSubdomains = function(){
-    return post('/api/querySubdomains/', 'subdomains');
+getSubdomains = function(scanId, targetId){
+    var url = '/api/querySubdomains/';
+    if (scanId)
+        url += `?scan_id=${scanId}`;
+    else if (targetId)
+        url += `?target_id=${targetId}`;
+
+    return post(url, 'subdomains');
 }
 
+getScans = function(targetId){
+    var url = '/api/listScanHistory/';
+    if (targetId)
+        url += `?target_id=${targetId}`;
+    return post(url, 'scan_histories');
+}
 
+getScanResults = function(scanId){
+    return post(`/api/queryAllScanResultVisualise/?scan_id=${scanId}`);
+}
 
-module.exports = { login, getTargets, getSubdomains }
+module.exports = { login, getTargets, getSubdomains, getScans, getScanResults }

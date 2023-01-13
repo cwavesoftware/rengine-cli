@@ -1,8 +1,8 @@
 
 const rengine = require('../../core/rengine');
 
-listSubdomains  = async function() {
-    await rengine.getSubdomains();
+listSubdomains  = async function(scanId, targetId) {
+    await rengine.getSubdomains(scanId, targetId);
 }
 
 module.exports= {listSubdomains}

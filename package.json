@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "cli tool for reNgine (https://github.com/cwavesoftware/rengine)",
   "main": "index.js",
+  "bin": {
+    "rengine-cli": "./index.js"
+  },
   "scripts": {
     "test": "jest"
   },
