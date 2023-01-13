@@ -14,8 +14,11 @@ const { CONFIG_FILE } = require('./const');
 
 program
     .command('config')
-    .description('Configure reNgine server connection parameters.')
+    .description('Configure reNgine server connection parameters')
     .action(writeConf);
+
+program
+    .option('-k, --insecure', 'Allow insecure server connections when using SSL', false)
 
 const target = program.command('target');
 target
@@ -27,11 +30,11 @@ const subdomain = program.command('subdomain');
 subdomain
     .command('list')
     .description('list subdomains')
-    .option('-s, --scan-id [value]', 'Get only for this scan. Can\'t be used with -t.')
-    .option('-t, --target-id [value]', 'Get only for this target. Can\'t be used with -s.')
+    .option('-s, --scan-id [value]', 'Get only for this scan.\nCan\'t be used with -t')
+    .option('-t, --target-id [value]', 'Get only for this target.\nCan\'t be used with -s')
     .action(opts => {
         if (opts.scanId && opts.targetId) {
-            console.log(chalk.yellow('Please specify either -s, -t, or none.'));
+            console.log(chalk.yellow('Please specify either -s, -t, or none'));
             process.exit(-1);
         }
         listSubdomains(opts.scanId, opts.targetId);
@@ -41,7 +44,7 @@ const scan = program.command('scan');
 scan
     .command('list')
     .description('list scans')
-    .option('-t, --target-id [value]', 'Get only for this target. Can\'t be used with -s.')
+    .option('-t, --target-id [value]', 'Get only for this target.\nCan\'t be used with -s')
     .action(opts => {
         listScans(opts.targetId);
     } );
@@ -69,3 +72,6 @@ endpoint
 
 
 program.parse(process.argv);
+const options = program.opts();
+if (options.insecure)
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
