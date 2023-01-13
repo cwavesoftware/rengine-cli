@@ -62,7 +62,16 @@ const ip = program.command('ip');
 ip
     .command('list')
     .description('list IPs')
-    .action(listIPs);
+    .option('-s, --scan-id [value]', 'Get only for this scan.\nCan\'t be used with -t')
+    .option('-t, --target-id [value]', 'Get only for this target.\nCan\'t be used with -s')
+    .option('-p, --port [value]', 'Get only IPs with this port open')
+    .action(opts => {
+        if (opts.scanId && opts.targetId) {
+            console.log(chalk.yellow('Please specify either -s, -t, or none'));
+            process.exit(-1);
+        }
+        listIPs(opts.scanId, opts.targetId, opts.port);
+    } );
 
 const endpoint = program.command('endpoint');
 endpoint

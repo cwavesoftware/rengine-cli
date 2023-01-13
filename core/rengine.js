@@ -8,10 +8,11 @@ var cnf = null;
 try {
     cnf = require(CONFIG_FILE);
 } catch(err) {
-    if (process.argv.length >= 3 && process.argv[2] != 'config')
-        console.log(chalk.yellow('No config found. Run \'rengine-cli config\' first.'));
+    if (process.argv.length >= 3 && process.argv[2] != 'config') {
+        console.log(chalk.yellow('No config found. Run ' + chalk.green('rengine-cli config') + ' first.'));
+        process.exit(-1);
+    }
 }
-
 
 const jar = new CookieJar();
 sessId = null;
@@ -92,19 +93,19 @@ getTargets = function(){
 }
 
 getSubdomains = function(scanId, targetId){
-    var url = '/api/querySubdomains/';
+    var url = '/api/querySubdomains/?';
     if (scanId)
-        url += `?scan_id=${scanId}`;
+        url += `scan_id=${scanId}`;
     else if (targetId)
-        url += `?target_id=${targetId}`;
+        url += `target_id=${targetId}`;
 
     return post(url, 'subdomains');
 }
 
 getScans = function(targetId){
-    var url = '/api/listScanHistory/';
+    var url = '/api/listScanHistory/?';
     if (targetId)
-        url += `?target_id=${targetId}`;
+        url += `target_id=${targetId}`;
     return post(url, 'scan_histories');
 }
 
@@ -112,4 +113,16 @@ getScanResults = function(scanId){
     return post(`/api/queryAllScanResultVisualise/?scan_id=${scanId}`);
 }
 
-module.exports = { login, getTargets, getSubdomains, getScans, getScanResults }
+getIPs = function(scanId, targetId, port){
+    var url = '/api/queryIps/?';
+    if (scanId)
+        url += `scan_id=${scanId}`;
+    else if (targetId)
+        url += `target_id=${targetId}`;
+    if (port)
+        url += `&port=${port}`;
+
+    return post(url, 'ips');
+}
+
+module.exports = { login, getTargets, getSubdomains, getScans, getScanResults, getIPs }
