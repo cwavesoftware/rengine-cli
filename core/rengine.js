@@ -22,7 +22,7 @@ loadSessId = function () {
         data = JSON.parse(fs.readFileSync('cookiejar'));
         sessId = data.idx[Object.keys(data.idx)[0]]['/']['sessionid'].value
     } catch (err) {
-        console.log(chalk.yellow('cookiejar not found, we need to login again'));
+        // cookiejar not found
     }
 }
 loadSessId();
