@@ -30,3 +30,7 @@ Commands:
   endpoint
   help [command]  display help for command
 ```
+
+Known issues / future improvements
+- needs pagination ( it's slow with large amounts of data because of reNgine database )
+- more filtering options
