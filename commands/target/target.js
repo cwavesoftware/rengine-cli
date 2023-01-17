@@ -6,9 +6,9 @@ listTargets = function() {
     rengine.getTargets()
     .then((resp) => {
         util.prettyprint(resp);
-    })
-    .catch((error) => {
-        console.error(chalk.red(error.message));
+    },
+    (error) => {
+        process.stderr.write(chalk.red(error.message));
         process.exit(-1);
     });
 }

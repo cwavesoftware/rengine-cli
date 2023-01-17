@@ -5,13 +5,13 @@ const util = require('./../../utils');
 
 listScanResults  = function(scanId) {
     rengine.getScanResults(scanId)
-    .then(({resp, err}) => {
-        if (err) {
-            console.error(chalk.red('err'));
-        } else {
-            util.prettyprint(resp);
-        }
-    })
+    .then((resp) => {
+        util.prettyprint(resp);
+    },
+    (error) => {
+        process.stderr.write(chalk.red(error.message));
+        process.exit(-1);
+    });
 }
 
 module.exports= {listScanResults}

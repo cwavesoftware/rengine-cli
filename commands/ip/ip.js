@@ -5,12 +5,12 @@ const util = require('./../../utils');
 
 listIPs  = function(scanId, targetId, port) {
     rengine.getIPs(scanId, targetId, port)
-    .then(({resp, err}) => {
-        if (err) {
-            console.error(chalk.red('err'));
-        } else {
-            util.prettyprint(resp);
-        }
+    .then((resp) => {
+        util.prettyprint(resp);
+    },
+    (error) => {
+        process.stderr.write(chalk.red(error.message));
+        process.exit(-1);
     });
 }
 
