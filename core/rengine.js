@@ -36,14 +36,15 @@ if (cnf) {
             'Content-type': 'application/x-www-form-urlencoded',
             'Cookie': `sessionid=${sessId}`
         },
-        maxRedirects: 0
+        maxRedirects: 0,
+        timeout: cnf.connection.timeout
     }));
 }
 
 login = function(){
     return new Promise((resolve, reject) => {
         client.get('/login/')
-        .then(({ config }) => {
+        .then(async ({ config }) => {
             client.post('/login/',
                 {
                     username: cnf.rengine.username,
@@ -54,14 +55,14 @@ login = function(){
                 // console.log(response);
             }).catch(function (error) {
                 if (error.response.status == 302 && error.response.headers.location == '/') {  // success
-                    console.log(chalk.green('Login OK'));
+                    console.error(chalk.green('Login OK'));
                     try {
                         fs.writeFileSync('cookiejar', JSON.stringify(error.config.jar.store));
                         loadSessId();
                         client.defaults.headers['Cookie'] = `sessionid=${sessId}`;
                         resolve(true);
                     } catch (err) {
-                        console.error(err);
+                        console.error(chalk.red(err));
                       }
                 }
             });
@@ -74,16 +75,25 @@ post = function(url, keyword) {
         client.get(url)
         .then(function (response) {
             if (keyword)
-                console.log(response.data[keyword] != null ? JSON.stringify(response.data[keyword]) : chalk.red('error'));
+                if (response.data[keyword] != null){
+                    resolve(response.data[keyword]);
+                } else
+                    reject(new Error('error'));
             else
-                console.log(JSON.stringify(response.data));
+                resolve({resp:response.data, err:null});
         }).catch(async function (error) {
             if (error.response && error.response.status == 302 && error.response.headers.location.startsWith('/login/?')) {  
                 // need to login
                 await login();
-                post(url, keyword);
-            } else 
-                console.log(chalk.red(error.code));
+                resolve(post(url, keyword));
+            } else {
+                if (error.code == 'ECONNABORTED') {
+                    console.error(
+                        chalk.yellow('reNgine server is taking a long time to respond. Consider using pagination.\n')
+                    );
+                }
+                reject(new Error(`${error.code}: ${error.message}`));
+            }
         });
     });
 }
@@ -125,4 +135,22 @@ getIPs = function(scanId, targetId, port){
     return post(url, 'ips');
 }
 
-module.exports = { login, getTargets, getSubdomains, getScans, getScanResults, getIPs }
+getEndpoints = function(scanId, targetId){
+    var url = '/api/queryEndpoints/?';
+    if (scanId)
+        url += `scan_id=${scanId}`;
+    else if (targetId)
+        url += `target_id=${targetId}`;
+
+    return post(url, 'subdomains');
+}
+
+module.exports = { 
+    login, 
+    getTargets,
+    getSubdomains, 
+    getScans, 
+    getScanResults, 
+    getIPs, 
+    getEndpoints 
+}

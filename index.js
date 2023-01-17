@@ -1,5 +1,4 @@
 #! /usr/bin/env node
-
 const { program } = require('commander');
 const { writeConf } = require('./commands/config/config');
 const { listTargets } = require('./commands/target/target');
@@ -77,7 +76,15 @@ const endpoint = program.command('endpoint');
 endpoint
     .command('list')
     .description('list endpoints')
-    .action(listEndpoints);
+    .option('-s, --scan-id [value]', 'Get only for this scan.\nCan\'t be used with -t')
+    .option('-t, --target-id [value]', 'Get only for this target.\nCan\'t be used with -s')
+    .action(opts => {
+        if (opts.scanId && opts.targetId) {
+            console.log(chalk.yellow('Please specify either -s, -t, or none'));
+            process.exit(-1);
+        }
+        listEndpoints(opts.scanId, opts.targetId);
+    } );
 
 
 program.parse(process.argv);

@@ -21,11 +21,23 @@ writeConf  = async function() {
         };
         conf = JSON.stringify(conf);
 
-        try{
+        if (fs.existsSync(CONFIG_FILE)) {
+            conf = require(CONFIG_FILE);
+        } else {
+            conf = {
+                connection: {
+                    timeout: 5000
+                }
+            }
+        }
+        conf.rengine = configParams;
+        conf = JSON.stringify(conf);
+
+        try {
             fs.writeFileSync(CONFIG_FILE, conf);
             console.log(chalk.blue('config saved'));
         } catch (err) {
-            console.log(chalk.red(err));
+            console.error(chalk.red(err));
         }
     });
 }
