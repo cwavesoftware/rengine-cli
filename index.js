@@ -8,7 +8,6 @@ const { listScanResults } = require('./commands/scanresult/scanresult');
 const {listIPs} = require('./commands/ip/ip');
 const { listEndpoints } = require('./commands/endpoint/endpoint');
 const chalk = require('chalk');
-const { CONFIG_FILE } = require('./const');
 
 
 program
@@ -29,14 +28,15 @@ const subdomain = program.command('subdomain');
 subdomain
     .command('list')
     .description('list subdomains')
-    .option('-s, --scan-id [value]', 'Get only for this scan.\nCan\'t be used with -t')
-    .option('-t, --target-id [value]', 'Get only for this target.\nCan\'t be used with -s')
+    .option('-s, --scan-id [value]', 'Get only for this scan.\nCan\'t be used with -t nor -tn')
+    .option('-t, --target-id [value]', 'Get only for this target.\nCan\'t be used with -s nor -tn')
+    .option('-tn, --target-name [value]', 'Get only for this target.\nCan\'t be used with -s nor -t')
     .action(opts => {
-        if (opts.scanId && opts.targetId) {
-            console.log(chalk.yellow('Please specify either -s, -t, or none'));
+        if (opts.scanId && opts.targetId || opts.scanId && opts.targetName || opts.targetId && opts.targetName) {
+            console.log(chalk.yellow('Please specify either -s, -t, -tn or none'));
             process.exit(-1);
         }
-        listSubdomains(opts.scanId, opts.targetId);
+        listSubdomains(opts.scanId, opts.targetId, opts.targetName);
     } );
 
 const scan = program.command('scan');
@@ -76,18 +76,20 @@ const endpoint = program.command('endpoint');
 endpoint
     .command('list')
     .description('list endpoints')
-    .option('-s, --scan-id [value]', 'Get only for this scan.\nCan\'t be used with -t')
-    .option('-t, --target-id [value]', 'Get only for this target.\nCan\'t be used with -s')
+    .option('-s, --scan-id [value]', 'Get only for this scan.\nCan\'t be used with -t nor -tn')
+    .option('-t, --target-id [value]', 'Get only for this target.\nCan\'t be used with -s nor -tn')
+    .option('-tn, --target-name [value]', 'Get only for this target.\nCan\'t be used with -s nor -t')
     .action(opts => {
-        if (opts.scanId && opts.targetId) {
-            console.log(chalk.yellow('Please specify either -s, -t, or none'));
+        if (opts.scanId && opts.targetId || opts.scanId && opts.targetName || opts.targetId && opts.targetName) {
+            console.log(chalk.yellow('Please specify either -s, -t, -tn or none'));
             process.exit(-1);
         }
-        listEndpoints(opts.scanId, opts.targetId);
+        listEndpoints(opts.scanId, opts.targetId, opts.targetName);
     } );
 
 
 program.parse(process.argv);
+
 const options = program.opts();
 if (options.insecure)
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';

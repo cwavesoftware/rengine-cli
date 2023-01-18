@@ -37,7 +37,7 @@ if (cnf) {
             'Cookie': `sessionid=${sessId}`
         },
         maxRedirects: 0,
-        timeout: cnf.connection.timeout
+        timeout: cnf.connection && cnf.connection.timeout ? cnf.connection.timeout : '5000'
     }));
 }
 
@@ -70,7 +70,7 @@ login = function(){
     });
 }
 
-post = function(url, keyword) {
+get = function(url, keyword) {
     return new Promise((resolve, reject) => {
         client.get(url)
         .then(function (response) {
@@ -80,7 +80,7 @@ post = function(url, keyword) {
                 } else
                     reject(new Error('error'));
             else
-                resolve({resp:response.data, err:null});
+                resolve(response.data);
         }).catch(async function (error) {
             if (error.response && error.response.status == 302 && error.response.headers.location.startsWith('/login/?')) {  
                 // need to login
@@ -99,28 +99,32 @@ post = function(url, keyword) {
 }
 
 getTargets = function(){
-    return post('/api/queryTargets/', 'domains');
+    return get('/api/queryTargets/', 'domains');
 }
 
-getSubdomains = function(scanId, targetId){
-    var url = '/api/querySubdomains/?';
+getSubdomains = function(scanId, targetId, targetName){
+    var url = '/api/listSubdomains/?';
     if (scanId)
         url += `scan_id=${scanId}`;
     else if (targetId)
         url += `target_id=${targetId}`;
+    else if (targetName)
+        url += `target_name=${targetName}`;
+    url += '&no_page';
 
-    return post(url, 'subdomains');
+
+    return get(url);
 }
 
 getScans = function(targetId){
     var url = '/api/listScanHistory/?';
     if (targetId)
         url += `target_id=${targetId}`;
-    return post(url, 'scan_histories');
+    return get(url, 'scan_histories');
 }
 
 getScanResults = function(scanId){
-    return post(`/api/queryAllScanResultVisualise/?scan_id=${scanId}`);
+    return get(`/api/queryAllScanResultVisualise/?scan_id=${scanId}`);
 }
 
 getIPs = function(scanId, targetId, port){
@@ -132,17 +136,19 @@ getIPs = function(scanId, targetId, port){
     if (port)
         url += `&port=${port}`;
 
-    return post(url, 'ips');
+    return get(url, 'ips');
 }
 
-getEndpoints = function(scanId, targetId){
+getEndpoints = function(scanId, targetId, targetName){
     var url = '/api/queryEndpoints/?';
     if (scanId)
         url += `scan_id=${scanId}`;
     else if (targetId)
         url += `target_id=${targetId}`;
+    else if (targetName)
+        url += `target_name=${targetName}`;
 
-    return post(url, 'subdomains');
+    return get(url, 'endpoints');
 }
 
 module.exports = { 

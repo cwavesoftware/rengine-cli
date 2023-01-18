@@ -3,8 +3,8 @@ const rengine = require('../../core/rengine');
 const util = require('./../../utils');
 
 
-listEndpoints  = function(scanId, targetId) {
-    rengine.getEndpoints(scanId, targetId)
+listEndpoints  = function(scanId, targetId, targetName) {
+    rengine.getEndpoints(scanId, targetId, targetName)
     .then((resp) => {
         util.prettyprint(resp);
     },

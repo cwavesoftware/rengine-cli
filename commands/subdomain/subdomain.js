@@ -3,8 +3,8 @@ const rengine = require('../../core/rengine');
 const util = require('./../../utils');
 
 
-listSubdomains  = function(scanId, targetId) {
-    rengine.getSubdomains(scanId, targetId)
+listSubdomains  = function(scanId, targetId, targetName) {
+    rengine.getSubdomains(scanId, targetId, targetName)
     .then((resp) => {
         util.prettyprint(resp);
     },
