@@ -3,8 +3,8 @@ const rengine = require('../../core/rengine');
 const util = require('./../../utils');
 const chalk = require('chalk');
 
-listScans  = function(targetId) {
-    rengine.getScans(targetId)
+listScans  = function(targetId, targetName) {
+    rengine.getScans(targetId, targetName)
     .then((resp) => {
         util.prettyprint(resp);
     },

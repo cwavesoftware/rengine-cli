@@ -3,8 +3,8 @@ const chalk = require('chalk');
 const rengine = require('../../core/rengine');
 const util = require('./../../utils');
 
-listIPs  = function(scanId, targetId, port) {
-    rengine.getIPs(scanId, targetId, port)
+listIPs  = function(scanId, targetId, targetName, port) {
+    rengine.getIPs(scanId, targetId, targetName, port)
     .then((resp) => {
         util.prettyprint(resp);
     },

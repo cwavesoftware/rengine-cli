@@ -89,7 +89,7 @@ get = function(url, keyword) {
             } else {
                 if (error.code == 'ECONNABORTED') {
                     console.error(
-                        chalk.yellow('reNgine server is taking a long time to respond. Consider using pagination.\n')
+                        chalk.yellow('reNgine server is taking a long time to respond. Consider narrowing your query.\n')
                     );
                 }
                 reject(new Error(`${error.code}: ${error.message}`));
@@ -116,10 +116,12 @@ getSubdomains = function(scanId, targetId, targetName){
     return get(url);
 }
 
-getScans = function(targetId){
+getScans = function(targetId, targetName){
     var url = '/api/listScanHistory/?';
     if (targetId)
         url += `target_id=${targetId}`;
+    else if (targetName)
+        url += `target_name=${targetName}`;
     return get(url, 'scan_histories');
 }
 
@@ -127,16 +129,20 @@ getScanResults = function(scanId){
     return get(`/api/queryAllScanResultVisualise/?scan_id=${scanId}`);
 }
 
-getIPs = function(scanId, targetId, port){
-    var url = '/api/queryIps/?';
+getIPs = function(scanId, targetId, targetName, port){
+    var url = '/api/listIps/?';
     if (scanId)
         url += `scan_id=${scanId}`;
     else if (targetId)
         url += `target_id=${targetId}`;
+    else if (targetName)
+        url += `target_name=${targetName}`;
     if (port)
         url += `&port=${port}`;
+    url += '&no_page';
+    
 
-    return get(url, 'ips');
+    return get(url);
 }
 
 getEndpoints = function(scanId, targetId, targetName){

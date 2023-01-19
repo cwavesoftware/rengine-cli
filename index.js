@@ -43,9 +43,10 @@ const scan = program.command('scan');
 scan
     .command('list')
     .description('list scans')
-    .option('-t, --target-id [value]', 'Get only for this target.\nCan\'t be used with -s')
+    .option('-t, --target-id [value]', 'Get only for this target.\nCan\'t be used with -tn')
+    .option('-tn, --target-name [value]', 'Get only for this target.\nCan\'t be used with -t')
     .action(opts => {
-        listScans(opts.targetId);
+        listScans(opts.targetId, opts.targetName);
     } );
 
 const scanresult = program.command('scanresult');
@@ -61,15 +62,16 @@ const ip = program.command('ip');
 ip
     .command('list')
     .description('list IPs')
-    .option('-s, --scan-id [value]', 'Get only for this scan.\nCan\'t be used with -t')
-    .option('-t, --target-id [value]', 'Get only for this target.\nCan\'t be used with -s')
+    .option('-s, --scan-id [value]', 'Get only for this scan.\nCan\'t be used with -t nor -tn')
+    .option('-t, --target-id [value]', 'Get only for this target.\nCan\'t be used with -s nor -tn')
+    .option('-tn, --target-name [value]', 'Get only for this target.\nCan\'t be used with -s nor -t')
     .option('-p, --port [value]', 'Get only IPs with this port open')
     .action(opts => {
-        if (opts.scanId && opts.targetId) {
+        if (opts.scanId && opts.targetId || opts.scanId && opts.targetName || opts.targetId && opts.targetName) {
             console.log(chalk.yellow('Please specify either -s, -t, or none'));
             process.exit(-1);
         }
-        listIPs(opts.scanId, opts.targetId, opts.port);
+        listIPs(opts.scanId, opts.targetId, opts.targetName, opts.port);
     } );
 
 const endpoint = program.command('endpoint');
