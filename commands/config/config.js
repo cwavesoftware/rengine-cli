@@ -16,18 +16,10 @@ getConf = async function() {
 writeConf  = async function() {
     await getConf()
     .then((configParams) => {
-        var conf = {
-            rengine: configParams
-        };
-        conf = JSON.stringify(conf);
-
         if (fs.existsSync(CONFIG_FILE)) {
             conf = require(CONFIG_FILE);
         } else {
             conf = {
-                connection: {
-                    timeout: 5000
-                }
             }
         }
         conf.rengine = configParams;

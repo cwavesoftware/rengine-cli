@@ -4,6 +4,9 @@ const axios = require('axios');
 const { CookieJar } = require('tough-cookie');
 const { wrapper } = require('axios-cookiejar-support');
 const fs = require('fs');
+const { program } = require('commander');
+
+
 var cnf = null;
 try {
     cnf = require(CONFIG_FILE);
@@ -16,7 +19,7 @@ try {
 
 const jar = new CookieJar();
 sessId = null;
-var client = null;
+client = null;
 
 loadSessId = function () {
     try {
@@ -37,7 +40,6 @@ if (cnf) {
             'Cookie': `sessionid=${sessId}`
         },
         maxRedirects: 0,
-        timeout: cnf.connection && cnf.connection.timeout ? cnf.connection.timeout : '5000'
     }));
 }
 
@@ -89,7 +91,7 @@ get = function(url, keyword) {
             } else {
                 if (error.code == 'ECONNABORTED') {
                     console.error(
-                        chalk.yellow('reNgine server is taking a long time to respond. Consider narrowing your query.\n')
+                        chalk.yellow('reNgine server is taking a long time to respond. Consider narrowing your query or increase --timeout.\n')
                     );
                 }
                 reject(new Error(`${error.code}: ${error.message}`));
