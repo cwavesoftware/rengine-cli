@@ -107,3 +107,4 @@ config/default.json
 tests
 .vscode
 cookiejar
+.DS_Store

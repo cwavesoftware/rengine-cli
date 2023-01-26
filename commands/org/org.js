@@ -2,8 +2,9 @@ const chalk = require('chalk');
 const rengine = require('../../core/rengine');
 const util = require('./../../utils');
 
-listTargets = function(targetId, targetName) {
-    rengine.getTargets(targetId, targetName)
+
+listOrgs  = function(orgName) {
+    rengine.getOrgs(orgName)
     .then((resp) => {
         util.prettyprint(resp);
     },
@@ -13,8 +14,8 @@ listTargets = function(targetId, targetName) {
     });
 }
 
-createTarget  = function(name, desc, h1handle) {
-    rengine.createTarget(name, desc, h1handle)
+createOrg  = function(orgName, orgDescription) {
+    rengine.createOrg(orgName, orgDescription)
     .then((resp) => {
         process.exit(0);
     },
@@ -24,4 +25,5 @@ createTarget  = function(name, desc, h1handle) {
     });
 }
 
-module.exports= {listTargets, createTarget }
+module.exports= {listOrgs, createOrg}
+

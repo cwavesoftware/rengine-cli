@@ -1,12 +1,14 @@
 #! /usr/bin/env node
 const { program } = require('commander');
 const { writeConf } = require('./commands/config/config');
-const { listTargets } = require('./commands/target/target');
+const { listTargets, createTarget } = require('./commands/target/target');
 const { listSubdomains } = require('./commands/subdomain/subdomain');
-const { listScans } = require('./commands/scan/scan');
+const { listScans, triggerScan } = require('./commands/scan/scan');
 const { listScanResults } = require('./commands/scanresult/scanresult');
-const {listIPs} = require('./commands/ip/ip');
+const { listIPs } = require('./commands/ip/ip');
 const { listEndpoints } = require('./commands/endpoint/endpoint');
+const { listOrgs, createOrg } = require('./commands/org/org');
+const {listEngines} = require('./commands/engine/engine')
 const chalk = require('chalk');
 var pkg = require("./package.json");
 
@@ -34,18 +36,34 @@ const target = program.command('target');
 target
     .command('list')
     .description('list targets')
-    .action(()=>{
+    .option('-ti, --target-id [value]', 'Get the target with this ID\nCan\'t be used with -tn')
+    .option('-tn, --target-name [value]', 'Get the target with this ID\nCan\'t be used with -ti')
+    .action((opts)=>{
+        if (opts.targetId && opts.targetName ) {
+            console.log(chalk.yellow('Please specify either -ti, -tn or none'));
+            process.exit(-1);
+        }
         processProgOptions(program);
-        listTargets();
+        listTargets(opts.targetId, opts.targetName);
     });
+target
+    .command('create')
+    .description('create a new target')
+    .argument('<target-name>', 'Name of the new target', )
+    .argument('[target-description]', 'Description of the new target')
+    .argument('[target-h1-handler]', 'HackerOne handle')
+    .action((name, desc, h1handle) => {
+        processProgOptions(program);
+        createTarget(name, desc, h1handle);
+    } );
 
 const subdomain = program.command('subdomain');
 subdomain
     .command('list')
     .description('list subdomains')
-    .option('-s, --scan-id [value]', 'Get only for this scan.\nCan\'t be used with -t nor -tn')
-    .option('-ti, --target-id [value]', 'Get only for this target.\nCan\'t be used with -s nor -tn')
-    .option('-tn, --target-name [value]', 'Get only for this target.\nCan\'t be used with -s nor -ti')
+    .option('-s, --scan-id [value]', 'Get only for this scan\nCan\'t be used with -t nor -tn')
+    .option('-ti, --target-id [value]', 'Get only for this target\nCan\'t be used with -s nor -tn')
+    .option('-tn, --target-name [value]', 'Get only for this target\nCan\'t be used with -s nor -ti')
     .action(opts => {
         if (opts.scanId && opts.targetId || opts.scanId && opts.targetName || opts.targetId && opts.targetName) {
             console.log(chalk.yellow('Please specify either -s, -t, -tn or none'));
@@ -59,8 +77,8 @@ const scan = program.command('scan');
 scan
     .command('list')
     .description('list scans')
-    .option('-ti, --target-id [value]', 'Get only for this target.\nCan\'t be used with -tn')
-    .option('-tn, --target-name [value]', 'Get only for this target.\nCan\'t be used with -ti')
+    .option('-ti, --target-id [value]', 'Get only for this target\nCan\'t be used with -tn')
+    .option('-tn, --target-name [value]', 'Get only for this target\nCan\'t be used with -ti')
     .action(opts => {
         if (opts.targetId && opts.targetName) {
             console.log(chalk.yellow('Please specify either -t, -tn or none'));
@@ -69,12 +87,22 @@ scan
         processProgOptions(program);
         listScans(opts.targetId, opts.targetName);
     } );
+scan
+    .command('trigger')
+    .description('trigger a new scan')
+    .argument('<target>', 'Target name to be scanned')
+    .argument('<engine>', 'Engine name to be used for the scan')
+    .argument('[subdomains-file]', 'Filename containing subdomains to be imported\nSeparate the subdomains using new line\nIf the subdomain does not belong to target, it will be skipped')
+    .action((target, engine, subsFile) => {
+        processProgOptions(program);
+        triggerScan(target, engine, subsFile);
+    } );
 
 const scanresult = program.command('scanresult');
 scanresult
     .command('list')
     .description('list scans results')
-    .arguments('<scan-id>')
+    .argument('<scan-id>')
     .action(id => {
         processProgOptions(program);
         listScanResults(id);
@@ -84,9 +112,9 @@ const ip = program.command('ip');
 ip
     .command('list')
     .description('list IPs')
-    .option('-s, --scan-id [value]', 'Get only for this scan.\nCan\'t be used with -t nor -tn')
-    .option('-ti, --target-id [value]', 'Get only for this target.\nCan\'t be used with -s nor -tn')
-    .option('-tn, --target-name [value]', 'Get only for this target.\nCan\'t be used with -s nor -ti')
+    .option('-s, --scan-id [value]', 'Get only for this scan\nCan\'t be used with -ti nor -tn')
+    .option('-ti, --target-id [value]', 'Get only for this target\nCan\'t be used with -s nor -tn')
+    .option('-tn, --target-name [value]', 'Get only for this target\nCan\'t be used with -s nor -ti')
     .option('-p, --port [value]', 'Get only IPs with this port open')
     .action(cmdOpts => {
         if (cmdOpts.scanId && cmdOpts.targetId || cmdOpts.scanId && cmdOpts.targetName || cmdOpts.targetId && cmdOpts.targetName) {
@@ -101,9 +129,9 @@ const endpoint = program.command('endpoint');
 endpoint
     .command('list')
     .description('list endpoints')
-    .option('-s, --scan-id [value]', 'Get only for this scan.\nCan\'t be used with -t nor -tn')
-    .option('-ti, --target-id [value]', 'Get only for this target.\nCan\'t be used with -s nor -tn')
-    .option('-tn, --target-name [value]', 'Get only for this target.\nCan\'t be used with -s nor -ti')
+    .option('-s, --scan-id [value]', 'Get only for this scan\nCan\'t be used with -ti nor -tn')
+    .option('-ti, --target-id [value]', 'Get only for this target\nCan\'t be used with -s nor -tn')
+    .option('-tn, --target-name [value]', 'Get only for this target\nCan\'t be used with -s nor -ti')
     .action(opts => {
         if (opts.scanId && opts.targetId || opts.scanId && opts.targetName || opts.targetId && opts.targetName) {
             console.log(chalk.yellow('Please specify either -s, -t, -tn or none'));
@@ -112,6 +140,37 @@ endpoint
         processProgOptions(program);
         listEndpoints(opts.scanId, opts.targetId, opts.targetName);
     } );
+
+const org = program.command('org');
+org
+    .command('list')
+    .description('list organizations')
+    .option('-on, --org-name [value]', 'Get only for this organization')
+    .action(opts => {
+        processProgOptions(program);
+        listOrgs(opts.orgName);
+    } );
+
+org
+    .command('create')
+    .description('create a new organizations')
+    .argument('<org-name>', 'Name of the organization', )
+    .argument('[org-description]', 'Description of the organization')
+
+    .action((name, desc) => {
+        processProgOptions(program);
+        createOrg(name, desc);
+    } );
+
+const engine = program.command('engine');
+engine
+    .command('list')
+    .description('list engines')
+    .option('-en, --engine-name [value]', 'Get the engine with this name')
+    .action((opts)=>{
+        processProgOptions(program);
+        listEngines(opts.engineName);
+    });
 
 program.parse(process.argv);
 

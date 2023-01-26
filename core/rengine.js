@@ -87,7 +87,7 @@ get = function(url, keyword) {
             if (error.response && error.response.status == 302 && error.response.headers.location.startsWith('/login/?')) {  
                 // need to login
                 await login();
-                resolve(post(url, keyword));
+                resolve(get(url, keyword));
             } else {
                 if (error.code == 'ECONNABORTED') {
                     console.error(
@@ -100,8 +100,40 @@ get = function(url, keyword) {
     });
 }
 
-getTargets = function(){
-    return get('/api/queryTargets/', 'domains');
+post = function(url, body) {
+    return new Promise((resolve, reject) => {
+        client.post(url, body)
+        .then(function (response) {
+            reject(new Error('unknown error')); // I know, is weird. In reNgine, 200 usually means something went wrong
+        }).catch(async function (error) {
+            if (error.response && error.response.status == 302) {
+                if (error.response.headers.location.startsWith('/login/?')) {  
+                    // need to login
+                    await login();
+                    resolve(post(url, body));
+                } else {  // success
+                    resolve(true);
+                }
+            } else {
+                if (error.code == 'ECONNABORTED') {
+                    console.error(
+                        chalk.yellow('reNgine server is taking a long time to respond. Consider narrowing your query or increase --timeout.\n')
+                    );
+                }
+                reject(new Error(`${error.code}: ${error.message}`));
+            }
+        });
+    });
+}
+
+getTargets = function(targetId, targetName){
+    var url='/api/queryTargets/';
+    if (targetId)
+        url += `?target_id=${targetId}`
+    else if (targetName)
+        url += `?target_name=${targetName}`
+
+    return get(url, 'domains');
 }
 
 getSubdomains = function(scanId, targetId, targetName){
@@ -159,6 +191,54 @@ getEndpoints = function(scanId, targetId, targetName){
     return get(url, 'endpoints');
 }
 
+getOrgs = function(orgName){
+    var url = '/api/listOrganizations/?';
+    if (orgName)
+        url += `org_name=${orgName}`;
+    return get(url, 'organizations');
+}
+
+createOrg = function(orgName, orgDescription){
+    var url = '/target/add/organization';
+    return post(url, {
+        name: orgName,
+        description: orgDescription
+    });
+}
+
+createTarget = function(name, desc, h1handle){
+    var url = '/target/add/target';
+    return post(url, {
+        name: name,
+        description: desc,
+        h1_team_handle: h1handle,
+        'add-target':'submit'
+    });
+}
+
+triggerScan = function(tid, eid, subsFile) {
+    var url = `/scan/start/${tid}`;
+    var subs = '';
+    try {
+        subs = fs.readFileSync(subsFile, 'utf8');
+    } catch(ex) {
+        console.error(chalk.yellow(`WARNING: ${ex.message}\nScan started with no subdomains imported`));
+    } finally {
+        return post(url, {
+            scan_mode: eid,
+            importSubdomainTextArea: subs,
+            outOfScopeSubdomainTextarea: ''
+        });
+    }
+}
+
+getEngines = function(name){
+    var url = '/api/listEngines/?';
+    if (name)
+        url += `engine_name=${name}`;
+    return get(url, 'engines');
+}
+
 module.exports = { 
     login, 
     getTargets,
@@ -166,5 +246,10 @@ module.exports = {
     getScans, 
     getScanResults, 
     getIPs, 
-    getEndpoints 
+    getEndpoints,
+    getOrgs,
+    createOrg,
+    createTarget,
+    triggerScan,
+    getEngines
 }

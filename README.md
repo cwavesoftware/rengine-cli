@@ -33,6 +33,8 @@ Commands:
   scanresult
   ip
   endpoint
+  org
+  engine
   help [command]         display help for command
 ```
 
