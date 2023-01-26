@@ -56,7 +56,7 @@ login = function(){
             ).then(function (response) {
                 // console.log(response);
             }).catch(function (error) {
-                if (error.response.status == 302 && error.response.headers.location == '/') {  // success
+                if (error.response.status == 302 && !error.response.headers.location.startsWith('/login/?')) {  // success
                     console.error(chalk.green('Login OK'));
                     try {
                         fs.writeFileSync('cookiejar', JSON.stringify(error.config.jar.store));
@@ -65,7 +65,7 @@ login = function(){
                         resolve(true);
                     } catch (err) {
                         console.error(chalk.red(err));
-                      }
+                    }
                 }
             });
         });
