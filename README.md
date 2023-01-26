@@ -35,6 +35,8 @@ Commands:
   endpoint
   org
   engine
+  login                  login to reNgine server
+                         Used mainly for testing configuration
   help [command]         display help for command
 ```
 
