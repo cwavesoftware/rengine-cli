@@ -1,7 +1,7 @@
 const { CONFIG_FILE } = require('../const');
 const chalk = require('chalk');
 const axios = require('axios');
-const { CookieJar } = require('tough-cookie');
+const { CookieJar, permuteDomain } = require('tough-cookie');
 const { wrapper } = require('axios-cookiejar-support');
 const fs = require('fs');
 const { program } = require('commander');
@@ -113,6 +113,32 @@ post = function(url, body) {
                     resolve(post(url, body));
                 } else {  // success
                     resolve(true);
+                }
+            } else {
+                if (error.code == 'ECONNABORTED') {
+                    console.error(
+                        chalk.yellow('reNgine server is taking a long time to respond. Consider narrowing your query or increase --timeout.\n')
+                    );
+                }
+                reject(new Error(`${error.code}: ${error.message}`));
+            }
+        });
+    });
+}
+
+put = function(url, body) {
+    return new Promise((resolve, reject) => {
+        client.put(url, body)
+        .then(function (response) {
+            resolve(true);
+        }).catch(async function (error) {
+            if (error.response && error.response.status == 302) {
+                if (error.response.headers.location.startsWith('/login/?')) {  
+                    // need to login
+                    await login();
+                    resolve(put(url, body));
+                } else {
+                    reject(new Error(`${error.code}: ${error.message}`));
                 }
             } else {
                 if (error.code == 'ECONNABORTED') {
@@ -239,6 +265,13 @@ getEngines = function(name){
     return get(url, 'engines');
 }
 
+addTargetToOrg = function(tid, oid) {
+    var url = `/api/organization/${oid}`;
+    return put(url, {
+        targetId: tid
+    })
+}
+
 module.exports = { 
     login, 
     getTargets,
@@ -251,5 +284,6 @@ module.exports = {
     createOrg,
     createTarget,
     triggerScan,
-    getEngines
+    getEngines,
+    addTargetToOrg
 }

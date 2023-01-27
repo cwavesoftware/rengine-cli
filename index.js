@@ -7,7 +7,7 @@ const { listScans, triggerScan } = require('./commands/scan/scan');
 const { listScanResults } = require('./commands/scanresult/scanresult');
 const { listIPs } = require('./commands/ip/ip');
 const { listEndpoints } = require('./commands/endpoint/endpoint');
-const { listOrgs, createOrg } = require('./commands/org/org');
+const { listOrgs, createOrg, addTarget } = require('./commands/org/org');
 const {listEngines} = require('./commands/engine/engine')
 const {login} = require('./core/rengine');
 const chalk = require('chalk');
@@ -163,6 +163,14 @@ org
         createOrg(name, desc);
     } );
 
+org
+    .command('add-target')
+    .argument('<org-name>')
+    .argument('<target-name>')
+    .action((orgName, targetName) => {
+        addTarget(orgName, targetName);
+    });
+
 const engine = program.command('engine');
 engine
     .command('list')
@@ -176,6 +184,7 @@ engine
 program.command('login')
 .description('login to reNgine server\nUsed mainly for testing configuration')
 .action(login)
+
 
 program.parse(process.argv);
 
