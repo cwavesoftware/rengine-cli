@@ -104,7 +104,11 @@ post = function(url, body) {
     return new Promise((resolve, reject) => {
         client.post(url, body)
         .then(function (response) {
-            reject(new Error('unknown error')); // I know, is weird. In reNgine, 200 usually means something went wrong
+            if (new RegExp('<div class="invalid-feedback"(.|\n|\r)*already exists(\n|\r)*( )*<\/div>').test(response.data)){
+                console.error(chalk.yellow(`WARNING: already exists`));
+                resolve(true);
+            }
+            reject(new Error('unknown error\n')); // I know, is weird. In reNgine, 200 usually means something went wrong
         }).catch(async function (error) {
             if (error.response && error.response.status == 302) {
                 if (error.response.headers.location.startsWith('/login/?')) {  

@@ -28,21 +28,31 @@ createOrg  = function(orgName, orgDescription) {
 addTarget = function(orgName, targetName) {
     rengine.getOrgs(orgName)
     .then(orgs =>{
-        const oid = orgs[0].id;
-        rengine.getTargets(null, targetName)
-        .then(targets => {
-            const tid = targets[0].id;
-            rengine.addTargetToOrg(tid, oid)
-            .then(resp => {
-                process.exit(0);
+        if (orgs && orgs.length) {
+            const oid = orgs[0].id;
+            rengine.getTargets(null, targetName)
+            .then(targets => {
+                if (targets && targets.length) {
+                    const tid = targets[0].id;
+                    rengine.addTargetToOrg(tid, oid)
+                    .then(resp => {
+                        process.exit(0);
+                    }, (error) => {
+                        process.stderr.write(chalk.red(error.message));
+                        process.exit(-1);
+                    });
+                } else {
+                    console.error(chalk.red(`Target ${targetName} not found`));
+                    process.exit(-1);
+                }
             }, (error) => {
                 process.stderr.write(chalk.red(error.message));
                 process.exit(-1);
-            })
-        }, (error) => {
-            process.stderr.write(chalk.red(error.message));
+            });
+        } else {
+            console.error(chalk.red(`Organization ${orgName} not found`));
             process.exit(-1);
-        });
+        }
     }, (error) => {
         process.stderr.write(chalk.red(error.message));
         process.exit(-1);
