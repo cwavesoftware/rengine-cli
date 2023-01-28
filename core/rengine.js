@@ -80,7 +80,7 @@ get = function(url, keyword) {
                 if (response.data[keyword] != null){
                     resolve(response.data[keyword]);
                 } else
-                    reject(new Error('error'));
+                    reject(new Error('unexpected error\n'));
             else
                 resolve(response.data);
         }).catch(async function (error) {
@@ -94,7 +94,7 @@ get = function(url, keyword) {
                         chalk.yellow('reNgine server is taking a long time to respond. Consider narrowing your query or increase --timeout.\n')
                     );
                 }
-                reject(new Error(`${error.code}: ${error.message}`));
+                reject(new Error(`${error.code}: ${error.message}\n`));
             }
         });
     });
@@ -124,7 +124,7 @@ post = function(url, body) {
                         chalk.yellow('reNgine server is taking a long time to respond. Consider narrowing your query or increase --timeout.\n')
                     );
                 }
-                reject(new Error(`${error.code}: ${error.message}`));
+                reject(new Error(`${error.code}: ${error.message}\n`));
             }
         });
     });
@@ -142,7 +142,7 @@ put = function(url, body) {
                     await login();
                     resolve(put(url, body));
                 } else {
-                    reject(new Error(`${error.code}: ${error.message}`));
+                    reject(new Error(`${error.code}: ${error.message}\n`));
                 }
             } else {
                 if (error.code == 'ECONNABORTED') {
@@ -150,7 +150,7 @@ put = function(url, body) {
                         chalk.yellow('reNgine server is taking a long time to respond. Consider narrowing your query or increase --timeout.\n')
                     );
                 }
-                reject(new Error(`${error.code}: ${error.message}`));
+                reject(new Error(`${error.code}: ${error.message}\n`));
             }
         });
     });
