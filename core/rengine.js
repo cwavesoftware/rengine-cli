@@ -54,7 +54,10 @@ login = function(){
                     csrfmiddlewaretoken: config.jar.getCookiesSync(config.baseURL) ? config.jar.getCookiesSync(config.baseURL)[0].value : ''
                 }
             ).then(function (response) {
-                // console.log(response);
+                if (new RegExp('Oops! Invalid username or password\.').test(response.data)){
+                    console.error(chalk.red(`Oops! Invalid username or password.`));
+                    process.exit(-2);
+                }
             }).catch(function (error) {
                 if (error.response.status == 302 && !error.response.headers.location.startsWith('/login/?')) {  // success
                     console.error(chalk.green('Login OK'));
