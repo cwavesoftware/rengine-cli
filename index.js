@@ -183,7 +183,10 @@ engine
 
 program.command('login')
 .description('login to reNgine server\nUsed mainly for testing configuration')
-.action(login)
+.action((opts)=>{
+    processProgOptions(program);
+    login();
+});
 
 
 program.parse(process.argv);
