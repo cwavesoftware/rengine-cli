@@ -17,7 +17,7 @@ listSubdomains = function(scanId, targetId, targetName) {
 listNewSubdomains = function(scanId) {
   rengine.getNewSubdomains(scanId)
     .then((resp) => {
-      util.prettyprint(resp);
+      util.prettyprint(resp.new_subs);
     },
       (error) => {
         process.stderr.write(chalk.red(error.message));
