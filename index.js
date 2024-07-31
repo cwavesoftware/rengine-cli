@@ -24,10 +24,15 @@ processProgOptions = function(program) {
 }
 
 program.version(pkg.version);
-program
-  .command('config')
+const conf = program.command('config');
+conf
   .description('Configure reNgine server connection parameters')
-  .action(writeConf);
+  .option('-u, --url [value]', 'reNgine URL')
+  .option('-U, --user [value]', 'reNgine user')
+  .option('-P, --password [value]', 'reNgine password')
+  .action((opts) => {
+    writeConf(opts);
+  });
 
 program
   .option('-k, --insecure', 'Allow insecure server connections when using SSL', false)
