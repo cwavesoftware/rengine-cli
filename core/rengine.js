@@ -269,6 +269,11 @@ triggerScan = function(tid, eid, subsFile) {
   }
 }
 
+scanStatus = function(scanId) {
+  var url = `/api/scan/${scanId}/status`
+  return get(url);
+}
+
 getEngines = function(name) {
   var url = '/api/listEngines/?';
   if (name)
@@ -297,5 +302,6 @@ module.exports = {
   triggerScan,
   getEngines,
   addTargetToOrg,
-  getNewSubdomains
+  getNewSubdomains,
+  scanStatus
 }

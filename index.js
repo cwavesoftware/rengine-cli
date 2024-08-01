@@ -3,7 +3,7 @@ const { program } = require('commander');
 const { writeConf } = require('./commands/config/config');
 const { listTargets, createTarget } = require('./commands/target/target');
 const { listSubdomains, listNewSubdomains } = require('./commands/subdomain/subdomain');
-const { listScans, triggerScan } = require('./commands/scan/scan');
+const { listScans, triggerScan, status, last } = require('./commands/scan/scan');
 const { listScanResults } = require('./commands/scanresult/scanresult');
 const { listIPs } = require('./commands/ip/ip');
 const { listEndpoints } = require('./commands/endpoint/endpoint');
@@ -111,6 +111,20 @@ scan
   .action((target, engine, subsFile) => {
     processProgOptions(program);
     triggerScan(target, engine, subsFile);
+  });
+scan
+  .command('status')
+  .argument('<scan-id>', '')
+  .action((scanId) => {
+    processProgOptions(program);
+    status(scanId);
+  });
+scan
+  .command('last')
+  .argument('<target-name>', '')
+  .action((targetName) => {
+    processProgOptions(program);
+    last(targetName);
   });
 
 const scanresult = program.command('scanresult');
