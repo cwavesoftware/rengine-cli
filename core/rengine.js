@@ -20,11 +20,13 @@ try {
 const jar = new CookieJar();
 sessId = null;
 client = null;
+csrftoken = null
 
 loadSessId = function() {
   try {
     data = JSON.parse(fs.readFileSync('cookiejar'));
     sessId = data.idx[Object.keys(data.idx)[0]]['/']['sessionid'].value
+    csrftoken = data.idx[Object.keys(data.idx)[0]]['/']['csrftoken'].value;
   } catch (err) {
     // cookiejar not found
   }
@@ -32,13 +34,18 @@ loadSessId = function() {
 loadSessId();
 
 if (cnf) {
+  headers = {
+    'Content-type': 'application/x-www-form-urlencoded',
+    'Cookie': `sessionid=${sessId};`
+  };
+  if (csrftoken) {
+    headers['Cookie'] += `csrftoken=${csrftoken}`;
+    headers['x-csrftoken'] = csrftoken;
+  }
   client = wrapper(axios.create({
     jar,
     baseURL: cnf.rengine.url,
-    headers: {
-      'Content-type': 'application/x-www-form-urlencoded',
-      'Cookie': `sessionid=${sessId}`
-    },
+    headers,
     maxRedirects: 0,
   }));
 }
@@ -51,9 +58,11 @@ login = function() {
           {
             username: cnf.rengine.username,
             password: cnf.rengine.password,
-            csrfmiddlewaretoken: config.jar.getCookiesSync(config.baseURL) ? config.jar.getCookiesSync(config.baseURL)[0].value : ''
+            csrfmiddlewaretoken:
+              config.jar.getCookiesSync(config.baseURL) ? config.jar.getCookiesSync(config.baseURL)[0].value : ''
           }
         ).then(function(response) {
+          console.log(response);
           if (new RegExp('Oops! Invalid username or password\.').test(response.data)) {
             console.error(chalk.red(`Oops! Invalid username or password.`));
             process.exit(-2);
@@ -69,6 +78,8 @@ login = function() {
             } catch (err) {
               console.error(chalk.red(err));
             }
+          } else {
+            console.log(error);
           }
         });
       });
@@ -103,14 +114,18 @@ get = function(url, keyword) {
   });
 }
 
-post = function(url, body) {
+post = function(url, body, headers = {}) {
   return new Promise((resolve, reject) => {
-    client.post(url, body)
+    client.post(url, body, headers)
       .then(function(response) {
         if (new RegExp('<div class="invalid-feedback"(.|\n|\r)*already exists(\n|\r)*( )*<\/div>').test(response.data)) {
           console.error(chalk.yellow(`WARNING: already exists`));
           resolve(true);
         }
+        if (response.status) {
+          resolve(response.status == "true")
+        }
+
         reject(new Error('unknown error\n')); // I know, is weird. In reNgine, 200 usually means something went wrong
       }).catch(async function(error) {
         if (error.response && error.response.status == 302) {
@@ -127,6 +142,7 @@ post = function(url, body) {
               chalk.yellow('reNgine server is taking a long time to respond. Consider narrowing your query or increase --timeout.\n')
             );
           }
+          //console.log(error);
           reject(new Error(`${error.code}: ${error.message}\n`));
         }
       });
@@ -288,6 +304,12 @@ addTargetToOrg = function(tid, oid) {
   })
 }
 
+deleteScan = function(scanId) {
+  var url = `/scan/delete/scan/${scanId}`;
+  return post(url, {
+  })
+}
+
 module.exports = {
   login,
   getTargets,
@@ -303,5 +325,6 @@ module.exports = {
   getEngines,
   addTargetToOrg,
   getNewSubdomains,
-  scanStatus
+  scanStatus,
+  deleteScan
 }

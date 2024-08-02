@@ -73,5 +73,20 @@ last = function(targetName) {
       })
 }
 
-module.exports = { listScans, triggerScan, status, last }
+deleteScan = function(scanId) {
+  rengine.deleteScan(scanId)
+    .then(result => {
+      if (result.status == 'true')
+        process.exit(0);
+      else
+        process.exit(1);
+    },
+      (error) => {
+        process.stderr.write(chalk.red(error.message));
+        process.exit(-1);
+      })
+
+}
+
+module.exports = { deleteScan, listScans, triggerScan, status, last }
 

@@ -3,7 +3,7 @@ const { program } = require('commander');
 const { writeConf } = require('./commands/config/config');
 const { listTargets, createTarget } = require('./commands/target/target');
 const { listSubdomains, listNewSubdomains } = require('./commands/subdomain/subdomain');
-const { listScans, triggerScan, status, last } = require('./commands/scan/scan');
+const scanlib = require('./commands/scan/scan');
 const { listScanResults } = require('./commands/scanresult/scanresult');
 const { listIPs } = require('./commands/ip/ip');
 const { listEndpoints } = require('./commands/endpoint/endpoint');
@@ -100,8 +100,9 @@ scan
       process.exit(-1);
     }
     processProgOptions(program);
-    listScans(opts.targetId, opts.targetName);
+    scanlib.listScans(opts.targetId, opts.targetName);
   });
+
 scan
   .command('trigger')
   .description('trigger a new scan')
@@ -110,21 +111,31 @@ scan
   .argument('[subdomains-file]', 'Filename containing subdomains to be imported\nSeparate the subdomains using new line\nIf the subdomain does not belong to target, it will be skipped')
   .action((target, engine, subsFile) => {
     processProgOptions(program);
-    triggerScan(target, engine, subsFile);
+    scanlib.triggerScan(target, engine, subsFile);
   });
+
 scan
   .command('status')
   .argument('<scan-id>', '')
   .action((scanId) => {
     processProgOptions(program);
-    status(scanId);
+    scanlib.status(scanId);
   });
+
 scan
   .command('last')
   .argument('<target-name>', '')
   .action((targetName) => {
     processProgOptions(program);
-    last(targetName);
+    scanlib.last(targetName);
+  });
+
+scan
+  .command('delete')
+  .argument('<scan-id>', '')
+  .action((scanId) => {
+    processProgOptions(program);
+    scanlib.deleteScan(scanId);
   });
 
 const scanresult = program.command('scanresult');
